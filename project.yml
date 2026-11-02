@@ -1,0 +1,60 @@
+name: Halo
+options:
+  bundleIdPrefix: com.umutgur
+  deploymentTarget:
+    macOS: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+targets:
+  Halo:
+    type: application
+    platform: macOS
+    sources: [Halo]
+    info:
+      path: Halo/Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleDisplayName: Halo
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSHumanReadableCopyright: "© 2026 Umut Gür"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.umutgur.Halo
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        ENABLE_HARDENED_RUNTIME: NO
+    postCompileScripts:
+      - name: Embed ffmpeg
+        basedOnDependencyAnalysis: false
+        script: |
+          # Drop a statically linked ffmpeg at Vendor/ffmpeg to ship it inside the app.
+          # Without it, Halo falls back to a Homebrew ffmpeg at runtime.
+          if [ -f "${SRCROOT}/Vendor/ffmpeg" ]; then
+            cp "${SRCROOT}/Vendor/ffmpeg" "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ffmpeg"
+            chmod +x "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ffmpeg"
+          fi
+  HaloTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [HaloTests]
+    dependencies:
+      - target: Halo
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Halo:
+    build:
+      targets:
+        Halo: all
+        HaloTests: [test]
+    test:
+      targets: [HaloTests]
